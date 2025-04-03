@@ -2,7 +2,9 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { XR, createXRStore } from '@react-three/xr'
 import { useRef } from 'react';
 import * as THREE from 'three'
-import { OrbitControls } from '@react-three/drei';
+import { Html, OrbitControls } from '@react-three/drei';
+
+import Editor from '@monaco-editor/react';
 
 const store = createXRStore({
     // emulate: false,
@@ -28,13 +30,19 @@ function CustomShader(props: CustomShaderProps) {
             refMat.current.uniforms.time.value += delta;
         }
     });
-    return <>
+    return <group>
+                    <Html transform scale={0.2} position={[2.5,0,0]}>
+                    <div style={{width: 500, height: 500}}>
+                <Editor defaultLanguage="javascript" defaultValue="// some comment" theme='vs-dark' />;
+
+                    </div>
+                </Html>
         <mesh>
             <planeGeometry args={[2,2]}/>
             {/* <meshNormalMaterial/> */}
             <shaderMaterial ref={refMat} uniforms={{time: {value: 0}}} side={THREE.DoubleSide} vertexShader={VERTEX_SHADER} fragmentShader={props.code}/>
         </mesh>
-    </>
+    </group>
 }
 
 function TestVR() {
@@ -47,7 +55,7 @@ function TestVR() {
             camera.getWorldDirection(forward);            
             refGroup.current.position.copy(camera.position).add(forward.multiplyScalar(2))
             const camUp = camera.localToWorld(new THREE.Vector3(0,1,0))
-            refGroup.current.up.set(camUp.x, camUp.y, camUp.z)
+            // refGroup.current.up.set(camUp.x, camUp.y, camUp.z)
             refGroup.current.lookAt(camera.position);
         }
     });
@@ -88,6 +96,7 @@ export function App3D() {
         <button onClick={openSessionVR}>Enter VR</button>
         <Canvas>
             <XR store={store} >
+
                 <OrbitControls/>
                 <TestVR/>
                 <group position={[0,0,-5]}>
