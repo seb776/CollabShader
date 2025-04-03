@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import { OrbitControls } from '@react-three/drei';
 
 const store = createXRStore({
-    emulate: false,
+    // emulate: false,
 })
 
 interface CustomShaderProps {
@@ -77,12 +77,15 @@ export function App3D() {
     function openSession() {
         store.enterAR()
     }
-
+    function openSessionVR() {
+        store.enterVR()
+    }
     return <>
         <button onClick={openSession}>Enter AR</button>
+        <button onClick={openSessionVR}>Enter VR</button>
         <Canvas>
             <XR store={store}>
-                <OrbitControls/>
+                {/* <OrbitControls/> */}
                 <TestVR/>
                 <group position={[0,0,-5]}>
                     <CustomShader code={fragmentShader}/>
