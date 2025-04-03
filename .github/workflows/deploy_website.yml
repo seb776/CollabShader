@@ -1,0 +1,65 @@
+# This workflow will build and push a web application to an Azure Static Web App when you change your code.
+#
+# This workflow assumes you have already created the target Azure Static Web App.
+# For instructions see https://docs.microsoft.com/azure/static-web-apps/get-started-portal?tabs=vanilla-javascript
+#
+# To configure this workflow:
+#
+# 1. Set up a secret in your repository named AZURE_STATIC_WEB_APPS_API_TOKEN with the value of your Static Web Apps deployment token.
+#    For instructions on obtaining the deployment token see: https://docs.microsoft.com/azure/static-web-apps/deployment-token-management
+#
+# 3. Change the values for the APP_LOCATION, API_LOCATION and APP_ARTIFACT_LOCATION, AZURE_STATIC_WEB_APPS_API_TOKEN environment variables (below).
+#    For instructions on setting up the appropriate configuration values go to https://docs.microsoft.com/azure/static-web-apps/front-end-frameworks
+name: Deploy collab shader
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches: [ "main" ]
+
+# Environment variables available to all jobs and steps in this workflow
+env:
+  APP_LOCATION: "/" # location of your client code
+  API_LOCATION: "api" # location of your api source code - optional
+  APP_ARTIFACT_LOCATION: "build" # location of client code build output
+  AZURE_STATIC_WEB_APPS_API_TOKEN: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }} # secret containing deployment token for your static web app
+
+permissions:
+  contents: read
+
+jobs:
+  build_front_job:
+    permissions:
+      contents: read # for actions/checkout to fetch code
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    name: Build frontend Job
+    steps:
+      - name: Build
+        uses: actions/checkout@v4
+        id: step1
+      - run: "cd collab-shader-front && npm install && npm run build"
+      - uses: actions/upload-artifact@master
+        with:
+          name: build_artifact
+          path: ./collab-shader-front/dist/
+
+  deploy_front_job:
+    needs: build_front_job
+    permissions:
+      contents: read # for actions/checkout to fetch code
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/azure-cli
+    name: Deploy frontend Job
+    steps:
+      - name: Deploy
+        uses: actions/download-artifact@master
+        with:
+          name: build_artifact
+          path: ./dist/
+      - run:  az storage blob upload-batch --account-name "${{vars.STORAGE_NAME}}" --source "./dist/" -d '$web' --auth-mode key --account-key "${{vars.STORAGE_KEY}}" --overwrite
+
+
