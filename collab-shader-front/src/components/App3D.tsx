@@ -2,9 +2,13 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { XR, createXRStore } from '@react-three/xr'
 import { useRef } from 'react';
 import * as THREE from 'three'
-import { Html, OrbitControls } from '@react-three/drei';
-
+import {  OrbitControls } from '@react-three/drei';
+import Html from './MyHtml'
 import Editor from '@monaco-editor/react';
+import tunnel from 'tunnel-rat'
+
+window.__tunnel__ = tunnel();
+let tunn = window.__tunnel__;
 
 const store = createXRStore({
     // emulate: false,
@@ -31,12 +35,15 @@ function CustomShader(props: CustomShaderProps) {
         }
     });
     return <group>
-                    <Html transform scale={0.2} position={[2.5,0,0]}>
+        <group position={[0,0,0]}>
+
+                    <Html >
                     <div style={{width: 500, height: 500}}>
                 <Editor defaultLanguage="javascript" defaultValue="// some comment" theme='vs-dark' />;
 
                     </div>
                 </Html>
+        </group>
         <mesh>
             <planeGeometry args={[2,2]}/>
             {/* <meshNormalMaterial/> */}
@@ -94,12 +101,13 @@ export function App3D() {
     return <>
         <button onClick={openSession}>Enter AR</button>
         <button onClick={openSessionVR}>Enter VR</button>
+        <tunn.Out/>
         <Canvas>
             <XR store={store} >
 
-                {/* <OrbitControls/> */}
+                <OrbitControls />
                 <TestVR/>
-                <group position={[0,0,-5]}>
+                <group position={[0,0,-0.5]}>
                     <CustomShader code={fragmentShader}/>
                 </group>
                 <mesh position={[5,0,5]}>

@@ -23,7 +23,9 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
-      'no-unused-vars': false
+      'no-unused-vars': false,
+      'no-explicit-any': false,
+      'no-implicit-any': false
     },
   },
 )
