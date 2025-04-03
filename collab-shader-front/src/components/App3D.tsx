@@ -44,8 +44,8 @@ function TestVR() {
         if (refGroup && refGroup.current) {
             const forward = new THREE.Vector3();
             camera.getWorldDirection(forward);
-            refGroup.current.quaternion.set(camera.quaternion.x, camera.quaternion.y, camera.quaternion.z, camera.quaternion.w);
             refGroup.current.position.copy(camera.position).add(forward.multiplyScalar(2))
+            refGroup.current.lookAt(camera.position);
         }
     });
     const SPACING = 0.5;
