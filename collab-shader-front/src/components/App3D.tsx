@@ -46,7 +46,8 @@ function TestVR() {
             const forward = new THREE.Vector3();
             camera.getWorldDirection(forward);            
             refGroup.current.position.copy(camera.position).add(forward.multiplyScalar(2))
-            refGroup.current.up.set(camera.up.x, camera.up.y, camera.up.z)
+            const camUp = camera.localToWorld(new THREE.Vector3(0,1,0))
+            refGroup.current.up.set(camUp.x, camUp.y, camUp.z)
             refGroup.current.lookAt(camera.position);
         }
     });
