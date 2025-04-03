@@ -6,6 +6,7 @@ import { OrbitControls } from '@react-three/drei';
 
 const store = createXRStore({
     // emulate: false,
+    depthSensing: true
 })
 
 interface CustomShaderProps {
@@ -43,8 +44,9 @@ function TestVR() {
     useFrame(()=>{
         if (refGroup && refGroup.current) {
             const forward = new THREE.Vector3();
-            camera.getWorldDirection(forward);
+            camera.getWorldDirection(forward);            
             refGroup.current.position.copy(camera.position).add(forward.multiplyScalar(2))
+            refGroup.current.up.set(camera.up.x, camera.up.y, camera.up.z)
             refGroup.current.lookAt(camera.position);
         }
     });
@@ -84,8 +86,8 @@ export function App3D() {
         <button onClick={openSession}>Enter AR</button>
         <button onClick={openSessionVR}>Enter VR</button>
         <Canvas>
-            <XR store={store}>
-                {/* <OrbitControls/> */}
+            <XR store={store} >
+                <OrbitControls/>
                 <TestVR/>
                 <group position={[0,0,-5]}>
                     <CustomShader code={fragmentShader}/>
