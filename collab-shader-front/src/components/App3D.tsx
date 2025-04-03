@@ -1,7 +1,8 @@
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { XR, createXRStore } from '@react-three/xr'
 import { useRef } from 'react';
 import * as THREE from 'three'
+import { OrbitControls } from '@react-three/drei';
 
 const store = createXRStore({
     emulate: false,
@@ -35,6 +36,34 @@ function CustomShader(props: CustomShaderProps) {
     </>
 }
 
+function TestVR() {
+    const refGroup = useRef<any>(undefined);
+    const refInvisibleObject = useRef<any>(undefined);
+    const { camera } = useThree();
+    useFrame(()=>{
+        if (refGroup && refGroup.current) {
+            const forward = new THREE.Vector3();
+            camera.getWorldDirection(forward);
+            refGroup.current.quaternion.set(camera.quaternion.x, camera.quaternion.y, camera.quaternion.z, camera.quaternion.w);
+            refGroup.current.position.copy(camera.position).add(forward.multiplyScalar(2))
+        }
+    });
+    const SPACING = 0.5;
+    const SIZE = 0.1;
+    return <>
+    <group ref={refGroup}>
+        <mesh position={[-SPACING,0,0]}>
+             <boxGeometry args={[SIZE,SIZE,SIZE]}/>
+             <meshNormalMaterial/>
+        </mesh>
+        <mesh position={[SPACING,0,0]}>
+             <boxGeometry args={[SIZE,SIZE,SIZE]}/>
+             <meshNormalMaterial/>
+        </mesh>
+    </group>
+    </>
+}
+
 export function App3D() {
 
     const fragmentShader = /*glsl*/`
@@ -53,6 +82,8 @@ export function App3D() {
         <button onClick={openSession}>Enter AR</button>
         <Canvas>
             <XR store={store}>
+                <OrbitControls/>
+                <TestVR/>
                 <group position={[0,0,-5]}>
                     <CustomShader code={fragmentShader}/>
                 </group>
