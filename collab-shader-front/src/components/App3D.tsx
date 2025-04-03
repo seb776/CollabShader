@@ -97,7 +97,7 @@ export function App3D() {
         <Canvas>
             <XR store={store} >
 
-                <OrbitControls/>
+                {/* <OrbitControls/> */}
                 <TestVR/>
                 <group position={[0,0,-5]}>
                     <CustomShader code={fragmentShader}/>
