@@ -5,8 +5,8 @@ import { renderToString } from "react-dom/server";
 import * as THREE from "three";
 import { useTexture } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
-
-
+import tunnel from 'tunnel-rat'
+import * as htmlToImage from 'html-to-image';
 // Prevents html2canvas warnings
 // @todo maybe remove this if it causes performance issues?
 // HTMLCanvasElement.prototype.getContext = (function (origFn) {
@@ -27,6 +27,8 @@ if (!container) {
   document.body.appendChild(node);
   container = node;
 }
+(document as any).__tunnel__ = tunnel();
+let tunn = (document as any).__tunnel__;
 
 export default function Html({
   children,
@@ -48,53 +50,66 @@ export default function Html({
     "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
   );
   // const [textureSize, setTextureSize] = React.useState({ width, height });
-
+  
   const node = React.useMemo(() => {
     const node = document.createElement("div");
     node.innerHTML = renderToString(children);
     return node;
   }, [children]);
+  
 
+  const refMat = useRef<THREE.MeshBasicMaterial>(null);
+  const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+  async function funcImagesStream() {
+    while (true) {
+      let prom = new Promise((resolve, err)=>{
+        if (refDiv.current) {
+          htmlToImage.toJpeg(refDiv.current).then((dataUrl) => {
+            new THREE.TextureLoader().load(dataUrl, (tex) =>{
+              if (refMat.current)
+                refMat.current!.map = tex;
+              resolve(null);
+            } );
+          });
+        }
+        resolve(null);
+      });
+      await prom.catch(()=>{});
+      await delay(200)
+    }
+  }
+  
   React.useEffect(() => {
     if (!refDiv.current)
       return;
-    container.appendChild(node);
-    html2canvas(refDiv.current, { backgroundColor: color }).then((canvas) => {
-      // setTextureSize({ width: canvas.width, height: canvas.height });
-      if (container.contains(node)) {
-        container.removeChild(node);
-      }
-      canvas.toBlob((blob) => {
-        if (blob === null) return;
-        if (lastUrl.current !== null) {
-          URL.revokeObjectURL(lastUrl.current);
-        }
-        const url = URL.createObjectURL(blob);
-        lastUrl.current = url;
-        setImage(url);
-      });
-    });
+    funcImagesStream();
+    return;
+    setInterval(()=>{
+
+    // container.appendChild(node);
+
     return () => {
-      if (!container) return;
-      if (container.contains(node)) {
-        container.removeChild(node);
-      }
+      // if (!container) return;
+      // if (container.contains(node)) {
+      //   container.removeChild(node);
+      // }
     };
+  }, 200)
+
   }, [node, viewSize, sceneSize, color]);
 
   const texture = useTexture(image);
-  const refDiv = useRef<HTMLDivElement>(undefined);
-
+  const refDiv = useRef<HTMLDivElement>(null);
   return (
     <>
-    <window.__tunnel__.In>
-    <div ref={refDiv} style={{position: 'absolute'}}>
+    <tunn.In>
+    <div ref={refDiv} style={{position: 'absolute', zIndex:9999, pointerEvents: "all", width: 500, height: 500}}>
     {children}
     </div>
-    </window.__tunnel__.In>
-    <mesh>
+    </tunn.In>
+    <mesh position={[2.5,0,0]}>
       <planeGeometry args={[2,2]} />
-      <meshBasicMaterial map={texture} side={THREE.DoubleSide} transparent />
+      <meshBasicMaterial ref={refMat} map={texture} side={THREE.DoubleSide} transparent />
     </mesh>
     </>
   );

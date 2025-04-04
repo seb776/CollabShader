@@ -7,8 +7,7 @@ import Html from './MyHtml'
 import Editor from '@monaco-editor/react';
 import tunnel from 'tunnel-rat'
 
-window.__tunnel__ = tunnel();
-let tunn = window.__tunnel__;
+let tunn = (document as any).__tunnel__;
 
 const store = createXRStore({
     // emulate: false,
@@ -107,7 +106,7 @@ export function App3D() {
 
                 <OrbitControls />
                 <TestVR/>
-                <group position={[0,0,-0.5]}>
+                <group position={[0,0,-1.5]}>
                     <CustomShader code={fragmentShader}/>
                 </group>
                 <mesh position={[5,0,5]}>
